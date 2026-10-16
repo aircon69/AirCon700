@@ -3,30 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Search Utility</title>
-    <!-- 1. Include Ultraviolet's required scripts from your deployed project -->
-    <script src="/uv/uv.bundle.js" defer></script>
-    <script src="/uv/uv.config.js" defer></script>
-    
+    <title>Search Portal</title>
     <style>
-        html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
-        iframe { width: 100%; height: 100%; border: none; }
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: Arial, sans-serif;
+            background: #111;
+            color: white;
+            overflow: hidden;
+        }
+        /* Top Navigation Search Bar */
+        .search-bar {
+            height: 50px;
+            background: #222;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            border-bottom: 1px solid #333;
+        }
+        .search-bar input {
+            width: 40%;
+            padding: 8px 12px;
+            border-radius: 20px;
+            border: 1px solid #444;
+            background: #333;
+            color: white;
+            outline: none;
+        }
+        .search-bar button {
+            padding: 8px 16px;
+            border-radius: 20px;
+            border: none;
+            background: #de5833;
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .search-bar button:hover {
+            background: #ff6f47;
+        }
+        /* Container for the web view */
+        .content-frame {
+            height: calc(100% - 50px);
+            width: 100%;
+        }
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+        }
     </style>
 </head>
 <body>
 
-    <!-- 2. Keep the iframe empty at first -->
-    <iframe id="proxyFrame"></iframe>
+    <!-- This bar stays at the top so you can always change searches -->
+    <div class="search-bar">
+        <input type="text" id="searchQuery" placeholder="Type a search or URL here..." />
+        <button onclick="launchSearch()">Search</button>
+    </div>
+
+    <!-- The viewer window -->
+    <div class="content-frame">
+        <iframe id="displayWindow" src="about:blank"></iframe>
+    </div>
 
     <script>
-        // 3. Wait for the proxy files to load, then point it to DuckDuckGo
-        window.addEventListener('load', async () => {
-            // This encodes the URL so the proxy server can read it safely
-            const targetUrl = 'https://lite.duckduckgo.com';
-            const encodedUrl = __uv$config.prefix + __uv$config.encodeUrl(targetUrl);
+        function launchSearch() {
+            const input = document.getElementById('searchQuery').value.trim();
+            const frame = document.getElementById('displayWindow');
             
-            // Forces the iframe to load through your unblocked proxy path
-            document.getElementById('proxyFrame').src = encodedUrl;
+            if (!input) return;
+
+            // If it's a direct URL, load it using a clean web resolver wrapper
+            if (input.startsWith('http://') || input.startsWith('https://') || input.includes('.')) {
+                let targetUrl = input.startsWith('http') ? input : 'https://' + input;
+                frame.src = "https://allorigins.win" + encodeURIComponent(targetUrl);
+            } else {
+                // If it's a search term, send it straight to DuckDuckGo's official open embed path
+                frame.src = "https://duckduckgo.com" + encodeURIComponent(input);
+            }
+        }
+
+        // Allow pressing "Enter" key to search
+        document.getElementById('searchQuery').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                launchSearch();
+            }
         });
     </script>
 
